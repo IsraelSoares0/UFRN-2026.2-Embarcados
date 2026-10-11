@@ -77,11 +77,12 @@ int calcularTempoMin(int carga) {
  * LCD
  * ------------------------------ */
 void escreverLinha(int linha, const char *texto, int largura) {
-    char buf[17];
-    snprintf(buf, sizeof(buf), "%-*s", largura, texto);
-
     lcd.setCursor(0, linha);
-    lcd.print(buf);
+    lcd.print(texto);
+
+    for (int i = strlen(texto); i < largura; i++) {
+        lcd.print(' ');
+    }
 }
 
 void atualizarLCD(bool conectado, int carga) {
