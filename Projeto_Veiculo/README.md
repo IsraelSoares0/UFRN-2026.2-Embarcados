@@ -5,6 +5,7 @@ Projeto da disciplina **Sistemas Embarcados (2026.2)**, Departamento de Engenhar
 - **Autor:** Israel Soares
 - **Data:** 26/10/2026
 - **Plataforma:** Arduino Uno, simulado no Tinkercad
+- **Link do projeto:** [Trabalho 3 Tinkercad](https://www.tinkercad.com/things/iEMNT9xanIS-trabalho3?sharecode=EYQtQBGLpjWg2hovaR78Lbzme5ajMSDeBmlu-75C_2Y)
 - **Arquivo principal:** `veiculo.ino`
 
 ## Descrição
