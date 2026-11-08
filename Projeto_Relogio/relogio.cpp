@@ -4,8 +4,11 @@
  *
  * Ligações:
  *   LCD I2C         : SDA -> A4 | SCL -> A5 | VCC -> 5V | GND -> GND
- *   Botão de ajuste : D2 <-> GND (usa INPUT_PULLUP, sem resistor externo)
- *   Botão de avanço : D3 <-> GND (usa INPUT_PULLUP, sem resistor externo)
+ *   Botão de ajuste : D2 <-> 5V, com resistor de 10k de D2 para GND (pull-down)
+ *   Botão de avanço : D3 <-> 5V, com resistor de 10k de D3 para GND (pull-down)
+ *
+ *   Com pull-down, o pino lê HIGH quando o botão está pressionado.
+ *   (Se ligar os botões em GND sem resistor, use INPUT_PULLUP e NIVEL_PRESSIONADO = LOW.)
  */
 
 #include <LiquidCrystal_I2C.h>
@@ -15,6 +18,7 @@ LiquidCrystal_I2C lcd(0x20, 16, 2);  // endereço 0x20 (padrão do Tinkercad), 1
 // ======================= Configurações =======================
 const uint8_t PINO_AJUSTE = 2;
 const uint8_t PINO_AVANCO = 3;
+const uint8_t NIVEL_PRESSIONADO = HIGH;  // HIGH para pull-down externo; LOW para INPUT_PULLUP
 
 const unsigned long INTERVALO_SEGUNDO   = 1000UL;  // base de tempo do relógio
 const unsigned long TEMPO_DEBOUNCE      = 30UL;    // entre 20 e 50 ms
@@ -66,11 +70,11 @@ Botao botoes[2] = {
     { PINO_AVANCO, false, false, 0, 0, 0, false, false }
 };
 
-// Lê o botão e gera eventos sem bloquear. Ativo em nível baixo (INPUT_PULLUP).
+// Lê o botão e gera eventos sem bloquear.
 void atualizarBotao(uint8_t indice) {
     Botao &b = botoes[indice];
     unsigned long agora = millis();
-    bool leitura = (digitalRead(b.pino) == LOW);
+    bool leitura = (digitalRead(b.pino) == NIVEL_PRESSIONADO);
 
     b.evPressionou = false;
     b.evSoltou = false;
@@ -223,9 +227,10 @@ void setup() {
 
     // Estado inicial dos botões (evita evento falso na partida)
     for (uint8_t i = 0; i < 2; i++) {
-        bool pressionado = (digitalRead(botoes[i].pino) == LOW);
+        bool pressionado = (digitalRead(botoes[i].pino) == NIVEL_PRESSIONADO);
         botoes[i].ultimaLeitura = pressionado;
         botoes[i].estavel = pressionado;
+        botoes[i].tPressionado = millis();
     }
 
     lcd.init();
@@ -242,9 +247,9 @@ void loop() {
     // Botão de ajuste: decide pela duração, ao soltar
     if (botoes[BTN_AJUSTE].evSoltou) {
         if (botoes[BTN_AJUSTE].duracao >= TEMPO_PRESSAO_LONGA) {
-        alternarModo();  // entra/sai do modo de ajuste
+            alternarModo();  // entra/sai do modo de ajuste
         } else if (modo == MODO_AJUSTE) {
-        proximoCampo();  // clique rápido: troca de campo
+            proximoCampo();  // clique rápido: troca de campo
         }
     }
 
