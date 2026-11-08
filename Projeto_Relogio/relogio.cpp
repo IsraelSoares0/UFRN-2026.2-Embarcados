@@ -25,6 +25,10 @@ const unsigned long TEMPO_DEBOUNCE      = 30UL;    // entre 20 e 50 ms
 const unsigned long TEMPO_PRESSAO_LONGA = 1000UL;  // >= 1 s = pressão longa
 const unsigned long INTERVALO_PISCA     = 500UL;   // meio período do pisca
 
+// Diferença (em horas) entre o relógio do servidor que compila o código e a hora local.
+// Ex.: se o servidor estiver em UTC e você em Brasília (UTC-3), use -3.
+const int AJUSTE_FUSO_HORAS = -3;
+
 const uint8_t COLUNA_HORA = 4;  // "HH:MM:SS" (8 caracteres) centralizado em 16 colunas
 
 // ======================= Estados =======================
@@ -39,7 +43,7 @@ uint8_t modo  = MODO_RELOGIO;
 uint8_t campo = CAMPO_SEGUNDOS;
 
 // ======================= Hora =======================
-uint8_t horas = 0, minutos = 0, segundos = 0;  // inicia em 00:00:00
+uint8_t horas = 0, minutos = 0, segundos = 0;  // preenchidos no setup() com a hora da compilação
 unsigned long tAnterior = 0;                   // instante da última atualização
 
 // ======================= Pisca / tela =======================
@@ -220,6 +224,21 @@ void atualizarPisca() {
     }
 }
 
+// Usa a hora em que o código foi compilado (__TIME__ = "HH:MM:SS") como hora inicial.
+void carregarHoraDaCompilacao() {
+    const char *t = __TIME__;
+
+    int h = (t[0] - '0') * 10 + (t[1] - '0');
+    minutos  = (t[3] - '0') * 10 + (t[4] - '0');
+    segundos = (t[6] - '0') * 10 + (t[7] - '0');
+
+    h = (h + AJUSTE_FUSO_HORAS) % 24;
+    if (h < 0) {
+        h += 24;
+    }
+    horas = h;
+}
+
 // ======================= Arduino =======================
 void setup() {
     pinMode(PINO_AJUSTE, INPUT);
@@ -237,6 +256,7 @@ void setup() {
     lcd.clear();
     lcd.backlight();  // garante que a luz de fundo esteja ligada
 
+    carregarHoraDaCompilacao();
     tAnterior = millis();
 }
 
